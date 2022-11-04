@@ -26,24 +26,29 @@ impl Contract {
 
         refund_excess_deposit(storage_used);
 
+        NftMintLog::emit(vec![NftMintLog {
+            owner_id: receiver_id.to_string(),
+            token_ids: vec![receiver_id.to_string()],
+            memo: Some(format!(
+                "{} has successfully joined Carbonite.Club",
+                receiver_id
+            )),
+        }]);
+
         // while onboarding users, for a fixed size of title and description appropriate amount of allowance will be given to their funciton access key
         // and appropriate amount of near to cover storage costs
         // for standarisation purpose later a mint_event will be emitted
         // Add a gas check to ensure sub account creation and the full execution if account creation does not revert on panic
-        // think of making it a batch mint function
-        todo!();
+        // todo!();
     }
 
-    /// accept invite from a company for a particular task
-    pub fn accept_invite(&mut self, task_id: TaskId) {
-        let mut task = self
-            .task_metadata_by_id
-            .get(&task_id)
-            .unwrap_or_else(|| env::panic_str("invalid task_id"));
-
-        self.ping_task(task_id.clone());
+    /// accept invite from a company for a particular task, if can't accept invite return false
+    pub fn accept_invite(&mut self, task_id: TaskId) -> bool {
+        self.ping_task(&task_id);
 
         let user_id = env::predecessor_account_id();
+
+        let mut task = self.task_metadata_by_id.get(&task_id).unwrap();
 
         match task.task_state {
             TaskState::Open => {
@@ -57,12 +62,16 @@ impl Contract {
                     );
 
                     task.person_assigned = Some(user_id);
+
+                    task.task_state = TaskState::Pending;
                 }
             }
-            _ => {}
+            _ => return false,
         }
 
         self.task_metadata_by_id.insert(&task_id, &task);
+
+        return true;
     }
 }
 

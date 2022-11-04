@@ -37,50 +37,51 @@ impl Contract {
             let refund_amount = storage_used as u128 * env::storage_byte_cost();
             Promise::new(company_id).transfer(refund_amount);
         }
+
+        // add a gas check for the promise to go through
+        todo!()
     }
 
     /// select a submission for a bounty task that is to be awarded
     #[payable]
     pub fn select_task(&mut self, task_id: TaskId, user_id: AccountId) {
-        if let Some(mut task) = self.task_metadata_by_id.get(&task_id) {
-            let initial_storage = env::storage_usage();
+        let initial_storage = env::storage_usage();
 
-            self.ping_task(task_id.clone());
+        self.ping_task(&task_id);
 
-            if let TaskState::Completed = task.task_state {
-                if task.is_past_deadline() {
-                    let company_id = env::predecessor_account_id();
+        let mut task = self.task_metadata_by_id.get(&task_id).unwrap();
 
-                    require!(company_id == task.company_id, "invalid company");
+        if let TaskState::Completed = task.task_state {
+            if task.is_past_deadline() {
+                let company_id = env::predecessor_account_id();
 
-                    let submission_set = self.submissions_per_task.get(&task_id).unwrap();
+                require!(company_id == task.company_id, "invalid company");
 
-                    require!(
-                        submission_set.get(&user_id).is_some(),
-                        "given user has no submissions for this task"
-                    );
+                let submission_set = self.submissions_per_task.get(&task_id).unwrap();
 
-                    task.task_state = TaskState::Payed;
+                require!(
+                    submission_set.get(&user_id).is_some(),
+                    "given user has no submissions for this task"
+                );
 
-                    self.task_metadata_by_id.insert(&task_id, &task);
+                task.task_state = TaskState::Payed;
 
-                    self.transfer_reward_to(&task_id, &user_id);
+                self.task_metadata_by_id.insert(&task_id, &task);
 
-                    self.update_user_carbonite_metadata_for_task(&task_id, &user_id);
+                self.transfer_reward_to(&task_id, &user_id);
 
-                    let storage_used = env::storage_usage() - initial_storage;
+                self.update_user_carbonite_metadata_for_task(&task_id, &user_id);
 
-                    refund_excess_deposit(storage_used);
-                    // make gas checks for promise to go through
-                    todo!()
-                } else {
-                    env::panic_str("can't select tasks until deadline has reached");
-                }
+                let storage_used = env::storage_usage() - initial_storage;
+
+                refund_excess_deposit(storage_used);
+                // make gas checks for promise to go through
+                todo!()
             } else {
-                env::panic_str("reward for task has already been payed");
+                env::panic_str("can't select tasks until deadline has reached");
             }
         } else {
-            env::panic_str("invalid task");
+            env::panic_str("can't select task now");
         }
     }
 
@@ -88,12 +89,12 @@ impl Contract {
     pub fn claim_refund(&mut self, task_id: TaskId) {
         let initial_storage = env::storage_usage();
 
+        self.ping_task(&task_id);
+
         let task = self
             .task_metadata_by_id
             .get(&task_id)
             .unwrap_or_else(|| env::panic_str("invalid task"));
-
-        self.ping_task(task_id.clone());
 
         match task.task_state {
             TaskState::Expired | TaskState::Overdue => {
@@ -102,11 +103,14 @@ impl Contract {
                 self.internal_remove_tasks_from_company(&company_id, &task_id);
                 self.task_metadata_by_id.remove(&task_id);
 
-                let storage_used = env::storage_usage() - initial_storage;
-
                 self.transfer_reward_to(&task_id, &company_id);
+
+                let storage_used = initial_storage - env::storage_usage();
+                let storage_cost = env::storage_byte_cost() * (storage_used as u128);
+
+                Promise::new(company_id).transfer(storage_cost);
+
                 // gas checks for promise to go through
-                // refund storage costs to company
                 todo!();
             }
             _ => env::panic_str(
@@ -121,7 +125,7 @@ impl Contract {
     pub(crate) fn assert_whitelisted_company(&self, company_id: &AccountId) {
         require!(
             self.whitelisted_companies.get(company_id).is_some(),
-            "invalid company"
+            "Invalid company"
         );
     }
 }
@@ -132,10 +136,7 @@ pub(crate) fn assert_valid_carbonite_company_account_pattern(account_id: &str) {
         .split_once(".")
         .unwrap_or_else(|| env::panic_str("Invalid account ID passed"));
 
-    require!(
-        company_name.ends_with("-Co"),
-        "Invlalid company name passed"
-    );
+    require!(company_name.ends_with("-Co"), "Invalid company name passed");
 
     (company_name, _) = company_name.split_once("-").unwrap();
 

@@ -62,7 +62,7 @@ pub struct Task {
 
 impl TaskDetails {
     /// assert that task_details are valid else panic
-    pub fn assert_valid_task_details(&self) {
+    pub fn assert_valid_ref_hash(&self) {
         require!(
             self.reference_hash.0.len() == 32,
             "hash should be 32 bytes long"
@@ -72,7 +72,7 @@ impl TaskDetails {
 
 impl Submission {
     /// assert that submission details are valid else panic
-    pub fn assert_valid_submission_details(&self) {
+    pub fn assert_valid_ref_hash(&self) {
         require!(
             self.submission_reference_hash.0.len() == 32,
             "hash should be 32 bytes long"
@@ -89,7 +89,7 @@ impl Task {
         ft_contract_id: AccountId,
         reward: u128,
     ) -> Self {
-        task_details.assert_valid_task_details();
+        task_details.assert_valid_ref_hash();
 
         // asserting deadline is after current time is not necessary as even if it's wrong it won't casue any harm
 
@@ -109,7 +109,7 @@ impl Task {
         }
     }
 
-    /// return if invite only or not and also return the account ID if the person is assigned
+    /// return if invite only or not
     pub fn is_invite_only(&self) -> bool {
         if let TaskType::InviteOnly { .. } = self.task_details.task_type {
             true
@@ -180,8 +180,8 @@ impl Contract {
         }
     }
 
-    pub fn extend_deadline(&mut self, task_id: TaskId, new_deadline: Timestamp) {
-        self.ping_task(task_id.clone());
+    pub fn extend_deadline(&mut self, task_id: TaskId, new_deadline: Timestamp) -> bool {
+        self.ping_task(&task_id);
 
         let mut task = self.task_metadata_by_id.get(&task_id).unwrap();
 
@@ -191,10 +191,11 @@ impl Contract {
                     task.deadline = new_deadline;
                 }
             }
-            _ => {}
+            _ => return false,
         }
 
         self.task_metadata_by_id.insert(&task_id, &task);
+        return true;
     }
 
     /// submits the task if the user is eligible to submit for the task
@@ -204,11 +205,11 @@ impl Contract {
 
         let user_id = env::predecessor_account_id();
 
-        self.ping_task(task_id.clone());
+        self.ping_task(&task_id);
 
         let mut task = self.task_metadata_by_id.get(&task_id).unwrap();
 
-        submission.assert_valid_submission_details();
+        submission.assert_valid_ref_hash();
 
         match task.task_state {
             TaskState::Pending => {

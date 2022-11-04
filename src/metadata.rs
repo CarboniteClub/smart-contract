@@ -37,6 +37,14 @@ pub struct CarboniteMetdata {
     pub total_tasks_completed: u16,
 }
 
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct JsonToken {
+    pub token_id: String,
+    pub owner_id: AccountId,
+    pub metadata: TokenMetadata,
+}
+
 pub trait NonFungibleTokenMetadata {
     fn nft_metadata(&self) -> NFTContractMetadata;
 }
@@ -81,8 +89,7 @@ impl Contract {
             .get(user_id)
             .unwrap_or_else(|| env::panic_str("Invalid user"));
 
-        let task = self
-            .task_metadata_by_id
+        self.task_metadata_by_id
             .get(&task_id)
             .unwrap_or_else(|| env::panic_str("invalid task"));
 

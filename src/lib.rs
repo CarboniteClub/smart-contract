@@ -2,7 +2,7 @@ use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::serde::{Deserialize, Serialize};
 
 use near_sdk::collections::{LazyOption, LookupMap, UnorderedMap, UnorderedSet};
-use near_sdk::json_types::Base64VecU8;
+use near_sdk::json_types::{Base64VecU8, U128};
 
 use near_sdk::{
     env, near_bindgen, require, AccountId, Balance, BorshStorageKey, CryptoHash, PanicOnDefault,
@@ -12,6 +12,8 @@ use near_sdk::{
 use std::collections::HashSet;
 
 mod company;
+mod enumeration;
+mod index;
 mod internal;
 mod metadata;
 mod payment;
@@ -20,6 +22,7 @@ mod user;
 mod utils;
 
 pub use crate::company::*;
+pub use crate::index::*;
 pub use crate::internal::*;
 pub use crate::metadata::*;
 pub use crate::payment::*;
@@ -168,11 +171,11 @@ impl Contract {
         todo!();
     }
 
-    /// make appropriate changes to task_state of a given task and perform appropriate actions like refunds to company
-    pub fn ping_task(&mut self, task_id: TaskId) {
+    /// make appropriate changes to task_state of a given task
+    pub fn ping_task(&mut self, task_id: &TaskId) {
         let mut task = self
             .task_metadata_by_id
-            .get(&task_id)
+            .get(task_id)
             .unwrap_or_else(|| env::panic_str("invalid task_id"));
 
         match task.task_state {
@@ -190,8 +193,5 @@ impl Contract {
         };
 
         self.task_metadata_by_id.insert(&task_id, &task);
-
-        // add a gas check at beginning of if block for promise to happen successfully
-        todo!();
     }
 }

@@ -36,3 +36,40 @@ impl Contract {
         );
     }
 }
+
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(test)]
+pub mod test_utils {
+    use crate::*;
+    use near_sdk::Balance;
+    use near_sdk::VMContext;
+
+    // Helper functions
+
+    pub fn carol() -> AccountId {
+        "carol.near".parse().unwrap()
+    }
+
+    pub fn get_context(predecessor_account_id: AccountId, attached_deposit: Balance) -> VMContext {
+        VMContext {
+            current_account_id: "carbonite.near".parse().unwrap(),
+            signer_account_id: predecessor_account_id.clone(),
+            signer_account_pk: "ed25519:6E8sCci9badyRkXb3JoRpBj5p8C6Tw41ELDZoiihKEtp"
+                .parse()
+                .unwrap(),
+            predecessor_account_id,
+            input: vec![],
+            block_index: 0,
+            block_timestamp: 0,
+            account_balance: 1000 * 10u128.pow(24),
+            account_locked_balance: 0,
+            storage_usage: 10u64.pow(6),
+            attached_deposit,
+            prepaid_gas: near_sdk::Gas(10u64.pow(18)),
+            random_seed: [8; 32],
+            output_data_receivers: vec![],
+            epoch_height: 0,
+            view_config: None,
+        }
+    }
+}
