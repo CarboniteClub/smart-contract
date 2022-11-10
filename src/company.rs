@@ -153,3 +153,10 @@ pub(crate) fn assert_valid_carbonite_company_account_pattern(account_id: &str) {
         "Invalid account ID passed"
     );
 }
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct JsonCompany {
+    pub account_id: AccountId,
+    pub details: Company,
+}

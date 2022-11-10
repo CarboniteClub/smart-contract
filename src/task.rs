@@ -48,6 +48,14 @@ pub struct Submission {
     pub submission_reference_hash: Base64VecU8,
 }
 
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct JsonSubmission {
+    pub task_id: TaskId,
+    pub account_id: AccountId,
+    pub submission: Submission,
+}
+
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize)]
 #[serde(crate = "near_sdk::serde")]
 pub struct Task {
@@ -58,6 +66,13 @@ pub struct Task {
     pub task_state: TaskState,
     pub ft_contract_id: AccountId, // contract ID of approved token used to pay
     pub reward: Balance, // reward amount in smallest unit of tokens, Eg: for near it will be yoctoNEAR}
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct JsonTask {
+    pub task_id: TaskId,
+    pub task: Task,
 }
 
 impl TaskDetails {

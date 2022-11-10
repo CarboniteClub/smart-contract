@@ -20,6 +20,7 @@ mod payment;
 mod task;
 mod user;
 mod utils;
+mod view;
 
 pub use crate::company::*;
 pub use crate::index::*;
@@ -29,6 +30,7 @@ pub use crate::payment::*;
 pub use crate::task::*;
 pub use crate::user::*;
 pub use crate::utils::*;
+pub use crate::view::*;
 
 const DEFAULT_RECOGNISED_SKILLS_SET: [&str; 2] = ["UI Designing", "UX Designing"];
 
@@ -64,7 +66,7 @@ pub struct Contract {
     /// keeps track of metadata of carbonite NFT for a given account
     pub tokens_by_account_id: UnorderedMap<AccountId, TokenMetadata>,
 
-    /// keeps tracks of tasks that are submitted for a particular task ID
+    /// keeps tracks of submissons that are submitted for a particular task ID
     pub submissions_per_task: LookupMap<TaskId, UnorderedMap<AccountId, Submission>>, // keeps track of user_account and their submission
 
     /// keeps track of all tasks that are given for a given company

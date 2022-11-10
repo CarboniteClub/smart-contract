@@ -2,11 +2,12 @@ use crate::*;
 
 #[near_bindgen]
 impl Contract {
+    //get the total supply of nft NFTs of this contract
     pub fn nft_total_supply(&self) -> U128 {
         U128(self.tokens_by_account_id.len() as u128)
     }
 
-    //Query for nft tokens on the contract regardless of the owner using pagination [Common Data of all passes]
+    //query for nft tokens on the contract regardless of the owner using pagination [Common Data of all passes]
     pub fn nft_tokens(&self, from_index: Option<U128>, limit: Option<u64>) -> Vec<JsonToken> {
         let start = u128::from(from_index.unwrap_or(U128(0)));
 
@@ -29,7 +30,7 @@ impl Contract {
         }
     }
 
-    //Query for all the tokens for an owner
+    //query for all the tokens for an owner
     pub fn nft_tokens_for_owner(
         &self,
         account_id: AccountId,
@@ -43,6 +44,7 @@ impl Contract {
         }
     }
 
+    // return NFT Token related data for a given account_
     pub fn nft_token(&self, account_id: &AccountId) -> Option<JsonToken> {
         if let Some(token_metadata) = self.tokens_by_account_id.get(account_id) {
             let account = account_id.to_string();
