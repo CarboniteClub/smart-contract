@@ -1,7 +1,6 @@
 use crate::*;
 
 // company account ID will be suffixed with -Co whereas users can't have _ in their name
-
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize)]
 #[serde(crate = "near_sdk::serde")]
 pub struct Company {
@@ -11,6 +10,13 @@ pub struct Company {
     pub description: String, // short description about the company
     pub location: Option<String>, // None if company is remote or else represents headquarter location
     pub reference: String,        // website url of the company
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct JsonCompany {
+    pub account_id: AccountId,
+    pub details: Company,
 }
 
 #[near_bindgen]
@@ -78,9 +84,11 @@ impl Contract {
                 // make gas checks for promise to go through
                 todo!()
             } else {
+                refund_excess_deposit(0);
                 env::panic_str("can't select tasks until deadline has reached");
             }
         } else {
+            refund_excess_deposit(0);
             env::panic_str("can't select task now");
         }
     }
@@ -152,11 +160,4 @@ pub(crate) fn assert_valid_carbonite_company_account_pattern(account_id: &str) {
         carbonite_contract_id == env::current_account_id().as_str(),
         "Invalid account ID passed"
     );
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(crate = "near_sdk::serde")]
-pub struct JsonCompany {
-    pub account_id: AccountId,
-    pub details: Company,
 }

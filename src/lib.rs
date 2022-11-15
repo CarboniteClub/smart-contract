@@ -2,7 +2,7 @@ use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::serde::{Deserialize, Serialize};
 
 use near_sdk::collections::{LazyOption, LookupMap, UnorderedMap, UnorderedSet};
-use near_sdk::json_types::{Base64VecU8, U128};
+use near_sdk::json_types::{Base64VecU8, U128, U64};
 
 use near_sdk::{
     env, near_bindgen, require, AccountId, Balance, BorshStorageKey, CryptoHash, PanicOnDefault,
@@ -21,6 +21,7 @@ mod task;
 mod user;
 mod utils;
 mod view;
+// mod types;
 
 pub use crate::company::*;
 pub use crate::index::*;
@@ -122,7 +123,7 @@ impl Contract {
         this.whitelisted_companies
             .insert(&carbonite_account_id, &carbonite);
 
-        let near_contract_id = AccountId::new_unchecked("near".to_string());
+        let near_contract_id = AccountId::try_from("near".to_string()).unwrap();
 
         this.approved_ft_tokens.insert(&near_contract_id);
 

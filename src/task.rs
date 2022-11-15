@@ -164,7 +164,7 @@ impl Contract {
 
         self.assert_whitelisted_company(&company_id);
 
-        let near_contract_id = AccountId::new_unchecked("near".to_string());
+        let near_contract_id = AccountId::try_from("near".to_string()).unwrap();
 
         let task = Task::new(
             task_details,

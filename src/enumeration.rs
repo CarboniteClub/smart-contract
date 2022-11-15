@@ -35,7 +35,7 @@ impl Contract {
         &self,
         account_id: AccountId,
         from_index: Option<U128>,
-        limit: Option<u64>,
+        limit: Option<U64>,
     ) -> Vec<JsonToken> {
         if let Some(json_token) = self.nft_token(&account_id) {
             vec![json_token]
