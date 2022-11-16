@@ -2,7 +2,7 @@ use crate::*;
 
 pub type Skills = String;
 
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, NearSchema)]
 #[serde(crate = "near_sdk::serde")]
 pub struct NFTContractMetadata {
     pub spec: String,
@@ -14,7 +14,7 @@ pub struct NFTContractMetadata {
     pub reference_hash: Base64VecU8, // Base64-encoded sha256 hash of JSON from reference field
 }
 
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, NearSchema)]
 #[serde(crate = "near_sdk::serde")]
 pub struct TokenMetadata {
     pub title: String,
@@ -29,7 +29,7 @@ pub struct TokenMetadata {
     pub reference_hash: Base64VecU8, // Base64-encoded sha256 hash of JSON from reference field
 }
 
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Default)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Default, NearSchema)]
 #[serde(crate = "near_sdk::serde")]
 pub struct CarboniteMetdata {
     pub xp: u16,
@@ -37,7 +37,7 @@ pub struct CarboniteMetdata {
     pub total_tasks_completed: u16,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, NearSchema)]
 #[serde(crate = "near_sdk::serde")]
 pub struct JsonToken {
     pub token_id: String,

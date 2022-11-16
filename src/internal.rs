@@ -45,6 +45,55 @@ impl Contract {
         self.tasks_by_company.insert(company_id, &task_set);
     }
 
+    /// adds the task_id to associated invited accounts
+    pub fn internal_add_task_invitations_per_user(&mut self, task_id: &TaskId, task: &Task) {
+        let mut task_set;
+
+        if let TaskType::InviteOnly {
+            invited_accounts, ..
+        } = &task.task_details.task_type
+        {
+            for account_id in invited_accounts {
+                task_set = self
+                    .task_invitations_per_user
+                    .get(&account_id)
+                    .unwrap_or_else(|| {
+                        UnorderedSet::new(StorageKey::TaskInvitationsPerUserInner {
+                            account_id_hash: hash_id(account_id.as_str()),
+                        })
+                    });
+
+                task_set.insert(&task_id);
+
+                self.task_invitations_per_user
+                    .insert(&account_id, &task_set);
+            }
+        }
+    }
+
+    /// removes task_invitation from users in case the task is removed due to any reason such as claim_refund
+    pub fn internal_remove_task_invitations_per_user(&mut self, task_id: &TaskId, task: &Task) {
+        let mut task_set;
+
+        if let TaskType::InviteOnly {
+            invited_accounts, ..
+        } = &task.task_details.task_type
+        {
+            for account_id in invited_accounts {
+                task_set = self.task_invitations_per_user.get(&account_id).unwrap(); // unwrap would always work bcz it is called for a particular
+
+                task_set.remove(&task_id);
+
+                if task_set.is_empty() {
+                    self.task_invitations_per_user.remove(&account_id);
+                } else {
+                    self.task_invitations_per_user
+                        .insert(&account_id, &task_set);
+                }
+            }
+        }
+    }
+
     /// add submission to the given task, panics if re submitting the task
     pub fn internal_add_submission_to_task(
         &mut self,

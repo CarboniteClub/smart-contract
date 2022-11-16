@@ -2,11 +2,11 @@ use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::serde::{Deserialize, Serialize};
 
 use near_sdk::collections::{LazyOption, LookupMap, UnorderedMap, UnorderedSet};
-use near_sdk::json_types::{Base64VecU8, U128, U64};
+use near_sdk::json_types::{Base64VecU8, U128};
 
 use near_sdk::{
-    env, near_bindgen, require, AccountId, Balance, BorshStorageKey, CryptoHash, PanicOnDefault,
-    Promise, PublicKey, StorageUsage, Timestamp,
+    env, near_bindgen, require, AccountId, Balance, BorshStorageKey, CryptoHash, NearSchema,
+    PanicOnDefault, Promise, PublicKey, StorageUsage, Timestamp,
 };
 
 use std::collections::HashSet;
@@ -48,11 +48,14 @@ pub enum StorageKey {
     TokensByAccountId,
     TasksCompletedPerAccountInner { account_id_hash: CryptoHash },
     TasksByCompany,
+    TaskInvitationsPerUser,
+    TaskInvitationsPerUserInner { account_id_hash: CryptoHash },
     TasksByCompanyInner { company_id_hash: CryptoHash },
     TaskMetadataById,
     SubmissionsPerTask,
     SubmissionsPerTaskInner { task_id_hash: CryptoHash },
     RecognisedSkills,
+    PendingVerificationRequests,
     WhitelistedCompanies,
     ApprovedFTTokens,
     NFTContractMetadata,
@@ -73,11 +76,17 @@ pub struct Contract {
     /// keeps track of all tasks that are given for a given company
     pub tasks_by_company: LookupMap<AccountId, UnorderedSet<TaskId>>,
 
+    /// keeps track of tasks that user was invited to
+    pub task_invitations_per_user: LookupMap<AccountId, UnorderedSet<TaskId>>,
+
     /// keeps track of task metadata for a given task ID
     pub task_metadata_by_id: UnorderedMap<TaskId, Task>,
 
     /// keeps track of all the skills that are recognised by carbonite community
     pub recognised_skills: UnorderedSet<Skills>,
+
+    /// keeps track of pending verification requests
+    pub pending_verification_requests: UnorderedMap<AccountId, CompanyRegDetails>,
 
     /// keeps track of whitelisted companies that are verified to be genuine
     pub whitelisted_companies: UnorderedMap<AccountId, Company>,
@@ -100,8 +109,12 @@ impl Contract {
             tokens_by_account_id: UnorderedMap::new(StorageKey::TokensByAccountId),
             submissions_per_task: LookupMap::new(StorageKey::SubmissionsPerTask),
             tasks_by_company: LookupMap::new(StorageKey::TasksByCompany),
+            task_invitations_per_user: LookupMap::new(StorageKey::TaskInvitationsPerUser),
             task_metadata_by_id: UnorderedMap::new(StorageKey::TaskMetadataById),
             recognised_skills: UnorderedSet::new(StorageKey::RecognisedSkills),
+            pending_verification_requests: UnorderedMap::new(
+                StorageKey::PendingVerificationRequests,
+            ),
             whitelisted_companies: UnorderedMap::new(StorageKey::WhitelistedCompanies),
             approved_ft_tokens: UnorderedSet::new(StorageKey::ApprovedFTTokens),
             metadata: LazyOption::new(StorageKey::NFTContractMetadata, Some(&metadata)),
@@ -146,9 +159,32 @@ impl Contract {
         refund_excess_deposit(storage_used);
     }
 
+    /// request for verification of company
+    #[payable]
+    pub fn request_verification(&mut self, company_reg_details: CompanyRegDetails) {
+        let initial_storage = env::storage_usage();
+
+        let account_id = company_reg_details.account_id.clone();
+
+        require!(
+            self.pending_verification_requests
+                .insert(&account_id, &company_reg_details)
+                .is_none(),
+            "verification has already been requested"
+        );
+
+        require!(
+            self.whitelisted_companies.get(&account_id).is_none(),
+            "Company has already been registered"
+        );
+
+        let storage_used = env::storage_usage() - initial_storage;
+        refund_excess_deposit(storage_used);
+    }
+
     /// owner only method to add new multiple whitelisted companies
     #[payable]
-    pub fn whitelist_companies(&mut self, companies: Vec<(AccountId, Company, PublicKey)>) {
+    pub fn whitelist_companies(&mut self, companies: Vec<AccountId>) {
         self.assert_owner();
 
         let initial_storage = env::storage_usage();
@@ -158,12 +194,22 @@ impl Contract {
             "can't whitelist more than 7 companies in a single call (hard gas limit)"
         );
 
-        for (company_id, company, public_key) in companies {
+        for company_id in companies {
             assert_valid_carbonite_company_account_pattern(company_id.as_str());
 
-            create_sub_account(company_id.clone(), public_key);
-
-            self.internal_add_company_to_whitelisted_companies(&company_id, &company);
+            if let Some(company_reg_details) =
+                self.pending_verification_requests.remove(&company_id)
+            {
+                create_sub_account(company_id.clone(), company_reg_details.public_key);
+                self.internal_add_company_to_whitelisted_companies(
+                    &company_id,
+                    &company_reg_details.company,
+                );
+            } else {
+                env::panic_str(
+                    format!("{company_id} is not in pending verification list").as_str(),
+                );
+            }
         }
 
         let storage_used = env::storage_usage() - initial_storage;
@@ -171,7 +217,7 @@ impl Contract {
 
         // Add a gas check to ensure sub account creation and the full execution if account creation does not revert on panic
         // Test and modify what should be max companies that can be whitelisted in a single call (restricted due to hard limit on gas on a function call)
-        todo!();
+        // todo!();
     }
 
     /// make appropriate changes to task_state of a given task

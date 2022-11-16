@@ -3,7 +3,7 @@ use crate::*;
 /// TaskId = company_name.task_name      company account_id = company_name.carbonite.near
 pub type TaskId = String;
 
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, NearSchema)]
 #[serde(crate = "near_sdk::serde")]
 pub enum TaskType {
     InviteOnly {
@@ -13,7 +13,7 @@ pub enum TaskType {
     ForEveryone, // this task can be taken up by anyone the company has the choice to select the winner
 }
 
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Copy, Clone)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Copy, Clone, NearSchema)]
 #[serde(crate = "near_sdk::serde")]
 pub enum TaskState {
     /// open is for invite only task that haven't been accepted
@@ -30,7 +30,7 @@ pub enum TaskState {
     Payed,
 }
 
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, NearSchema)]
 #[serde(crate = "near_sdk::serde")]
 pub struct TaskDetails {
     pub title: String,
@@ -41,14 +41,14 @@ pub struct TaskDetails {
     pub reference_hash: Base64VecU8, // Base64-encoded sha256 hash of Jencrypted JSON file itself from reference field
 }
 
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, NearSchema)]
 #[serde(crate = "near_sdk::serde")]
 pub struct Submission {
     pub submission_reference: String, // link to the decentralised submitted documents in encrypted format (preferrably)
     pub submission_reference_hash: Base64VecU8,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, NearSchema)]
 #[serde(crate = "near_sdk::serde")]
 pub struct JsonSubmission {
     pub task_id: TaskId,
@@ -56,7 +56,7 @@ pub struct JsonSubmission {
     pub submission: Submission,
 }
 
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, NearSchema)]
 #[serde(crate = "near_sdk::serde")]
 pub struct Task {
     pub task_details: TaskDetails,
@@ -68,7 +68,7 @@ pub struct Task {
     pub reward: Balance, // reward amount in smallest unit of tokens, Eg: for near it will be yoctoNEAR}
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, NearSchema)]
 #[serde(crate = "near_sdk::serde")]
 pub struct JsonTask {
     pub task_id: TaskId,
@@ -181,6 +181,8 @@ impl Contract {
 
         // pay for person assigned if invite only task
         if task.is_invite_only() {
+            self.internal_add_task_invitations_per_user(&task_id, &task);
+            storage_used = env::storage_usage() - initial_storage;
             storage_used = storage_used + STORAGE_USED_PER_ACCOUNT;
         }
 
@@ -246,7 +248,7 @@ impl Contract {
                     task.task_state = TaskState::Payed;
 
                     // make gas check for promise to go through
-                    todo!();
+                    // todo!();
                 }
             }
             TaskState::Completed => {

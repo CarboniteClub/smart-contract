@@ -37,6 +37,22 @@ impl Contract {
     }
 
     // get all the companies listed and verified on carbonite
+    pub fn get_pending_companies_list(
+        &self,
+        from_index: Option<U128>,
+        limit: Option<u64>,
+    ) -> Vec<CompanyRegDetails> {
+        let start = u128::from(from_index.unwrap_or(U128(0)));
+
+        self.pending_verification_requests
+            .keys()
+            .skip(start as usize)
+            .take(limit.unwrap_or(50) as usize)
+            .map(|company_id| self.pending_verification_requests.get(&company_id).unwrap())
+            .collect()
+    }
+
+    // get all the companies listed and verified on carbonite
     pub fn get_whitelisted_companies_list(
         &self,
         from_index: Option<U128>,
@@ -89,6 +105,27 @@ impl Contract {
             .skip(start as usize)
             .take(limit.unwrap_or(50) as usize)
             .map(|task_id| self.get_task_details(task_id).unwrap())
+            .collect()
+    }
+
+    // get all the tasks that user is / was invited to
+    pub fn get_invited_tasks_for_user_list(
+        &self,
+        account_id: AccountId,
+        from_index: Option<U128>,
+        limit: Option<u64>,
+    ) -> Vec<TaskId> {
+        let start = u128::from(from_index.unwrap_or(U128(0)));
+
+        let Some(invited_tasks_per_user) = self.task_invitations_per_user.get(&account_id) else{
+            return vec![]
+        };
+
+        invited_tasks_per_user
+            .iter()
+            .skip(start as usize)
+            .take(limit.unwrap_or(50) as usize)
+            .map(|task_id| task_id)
             .collect()
     }
 

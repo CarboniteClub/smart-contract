@@ -1,7 +1,7 @@
 use crate::*;
 
 // company account ID will be suffixed with -Co whereas users can't have _ in their name
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, NearSchema)]
 #[serde(crate = "near_sdk::serde")]
 pub struct Company {
     pub name: String,
@@ -11,8 +11,15 @@ pub struct Company {
     pub location: Option<String>, // None if company is remote or else represents headquarter location
     pub reference: String,        // website url of the company
 }
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, NearSchema)]
+#[serde(crate = "near_sdk::serde")]
+pub struct CompanyRegDetails {
+    pub account_id: AccountId,
+    pub company: Company,
+    pub public_key: PublicKey,
+}
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, NearSchema)]
 #[serde(crate = "near_sdk::serde")]
 pub struct JsonCompany {
     pub account_id: AccountId,
@@ -44,8 +51,8 @@ impl Contract {
             Promise::new(company_id).transfer(refund_amount);
         }
 
-        // add a gas check for the promise to go through
-        todo!()
+        // add a gas check for the promise to go through and place constraints on editing
+        // todo!()
     }
 
     /// select a submission for a bounty task that is to be awarded
@@ -82,13 +89,11 @@ impl Contract {
 
                 refund_excess_deposit(storage_used);
                 // make gas checks for promise to go through
-                todo!()
+                // todo!()
             } else {
-                refund_excess_deposit(0);
                 env::panic_str("can't select tasks until deadline has reached");
             }
         } else {
-            refund_excess_deposit(0);
             env::panic_str("can't select task now");
         }
     }
@@ -111,6 +116,8 @@ impl Contract {
                 self.internal_remove_tasks_from_company(&company_id, &task_id);
                 self.task_metadata_by_id.remove(&task_id);
 
+                self.internal_remove_task_invitations_per_user(&task_id, &task);
+
                 self.transfer_reward_to(&task_id, &company_id);
 
                 let storage_used = initial_storage - env::storage_usage();
@@ -119,7 +126,7 @@ impl Contract {
                 Promise::new(company_id).transfer(storage_cost);
 
                 // gas checks for promise to go through
-                todo!();
+                // todo!();
             }
             _ => env::panic_str(
                 "can't claim refunds for tasks that are pending / open / completed / payed",

@@ -12,7 +12,7 @@ impl Contract {
             Promise::new(user_id.clone()).transfer(task.reward);
         } else {
             // handle fungible token transfer
-            todo!();
+            // todo!();
         }
     }
 }
