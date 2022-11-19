@@ -6,7 +6,7 @@ use near_sdk::json_types::{Base64VecU8, U128};
 
 use near_sdk::{
     env, near_bindgen, require, AccountId, Balance, BorshStorageKey, CryptoHash, NearSchema,
-    PanicOnDefault, Promise, PublicKey, StorageUsage, Timestamp,
+    PanicOnDefault, Promise, PublicKey, StorageUsage, Timestamp,PromiseOrValue
 };
 
 use std::collections::HashSet;
@@ -35,8 +35,8 @@ pub use crate::view::*;
 
 const DEFAULT_RECOGNISED_SKILLS_SET: [&str; 2] = ["UI Designing", "UX Designing"];
 
-const DEFAULT_MEDIA_REFERENCE: &str = "ipfs://dummy_default_media_link";
-const DEFAULT_NFT_REFERENCE: &str = "ipfs://dummy_default_nft_link";
+const DEFAULT_MEDIA_REFERENCE: &str = "https://bafybeiftczwrtyr3k7a2k4vutd3amkwsmaqyhrdzlhvpt33dyjivufqusq.ipfs.dweb.link/goteam-gif.gif";
+const DEFAULT_NFT_REFERENCE: &str = "https://bafybeiftczwrtyr3k7a2k4vutd3amkwsmaqyhrdzlhvpt33dyjivufqusq.ipfs.dweb.link/goteam-gif.gif";
 
 const BASE_STORAGE_COST: Balance = 10_000_000_000_000_000_000_000; // this is equal to 0.01 NEAR
 

@@ -11,7 +11,7 @@ impl Contract {
             self.tokens_by_account_id
                 .insert(owner_id, token_metadata)
                 .is_none(),
-            "account ID already exists" // would never reach this since it will fail at sub account creation itself but still for security reasons
+            "account ID already exists"
         );
     }
 
