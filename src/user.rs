@@ -11,7 +11,7 @@ impl Contract {
         title: String,
         description: Option<String>,
         public_key: PublicKey,
-    ) -> PromiseOrValue<()>{
+    ) -> PromiseOrValue<()> {
         let initial_storage = env::storage_usage();
 
         assert_valid_carbonite_user_account_pattern(receiver_id.as_str());
@@ -20,9 +20,8 @@ impl Contract {
 
         self.internal_add_token_to_owner(&receiver_id, &token_metadata);
 
-        
         create_sub_account(receiver_id.clone(), public_key);
-        
+
         NftMintLog::emit(vec![NftMintLog {
             owner_id: receiver_id.to_string(),
             token_ids: vec![receiver_id.to_string()],
@@ -31,11 +30,10 @@ impl Contract {
                 receiver_id
             )),
         }]);
-        
+
         let storage_used = env::storage_usage() - initial_storage;
 
         refund_excess_deposit(storage_used)
-
 
         // while onboarding users, for a fixed size of title and description appropriate amount of allowance will be given to their funciton access key
         // and appropriate amount of near to cover storage costs

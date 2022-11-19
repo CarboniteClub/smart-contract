@@ -6,7 +6,7 @@ use near_sdk::json_types::{Base64VecU8, U128};
 
 use near_sdk::{
     env, near_bindgen, require, AccountId, Balance, BorshStorageKey, CryptoHash, NearSchema,
-    PanicOnDefault, Promise, PublicKey, StorageUsage, Timestamp,PromiseOrValue
+    PanicOnDefault, Promise, PromiseOrValue, PublicKey, StorageUsage, Timestamp,
 };
 
 use std::collections::HashSet;

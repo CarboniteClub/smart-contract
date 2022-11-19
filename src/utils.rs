@@ -16,7 +16,7 @@ pub(crate) fn create_sub_account(account_id: AccountId, public_key: PublicKey) {
 }
 
 /// refunds excess deposit attached to predecessor_account_id and panic if attached deposit is not enough to cover given storage_used in bytes
-pub(crate) fn refund_excess_deposit(storage_used: u64) -> PromiseOrValue<()>{
+pub(crate) fn refund_excess_deposit(storage_used: u64) -> PromiseOrValue<()> {
     let storage_cost = env::storage_byte_cost() * (storage_used as u128);
 
     let refund_amount = env::attached_deposit()
@@ -25,7 +25,7 @@ pub(crate) fn refund_excess_deposit(storage_used: u64) -> PromiseOrValue<()>{
 
     if refund_amount > 0 {
         PromiseOrValue::Promise(Promise::new(env::predecessor_account_id()).transfer(refund_amount))
-    }else{
+    } else {
         PromiseOrValue::Value(())
     }
 }

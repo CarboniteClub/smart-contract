@@ -37,11 +37,14 @@ impl Contract {
         from_index: Option<U128>,
         limit: Option<u64>,
     ) -> Vec<JsonToken> {
-        if let Some(json_token) = self.nft_token(&account_id) {
-            vec![json_token]
-        } else {
-            vec![]
+        let start = u128::from(from_index.unwrap_or(U128(0)));
+
+        if start == 0 {
+            if let Some(json_token) = self.nft_token(&account_id) {
+                return vec![json_token];
+            }
         }
+        vec![]
     }
 
     // return NFT Token related data for a given account_
