@@ -1,6 +1,6 @@
 use crate::*;
 
-// company account ID will be suffixed with -Co whereas users can't have _ in their name
+// company account ID will be suffixed with -co whereas users can't have _ in their name
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, NearSchema)]
 #[serde(crate = "near_sdk::serde")]
 pub struct Company {
@@ -151,7 +151,7 @@ pub(crate) fn assert_valid_carbonite_company_account_pattern(account_id: &str) {
         .split_once(".")
         .unwrap_or_else(|| env::panic_str("Invalid account ID passed"));
 
-    require!(company_name.ends_with("-Co"), "Invalid company name passed");
+    require!(company_name.ends_with("-co"), "Invalid company name passed");
 
     (company_name, _) = company_name.split_once("-").unwrap();
 
