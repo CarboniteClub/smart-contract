@@ -36,6 +36,11 @@ impl Contract {
         }
     }
 
+    // check if a particular accountId has requested company verification
+    pub fn has_company_requested_verification(&self, account_id: AccountId) -> bool{
+        self.pending_verification_requests.get(&account_id).is_some()
+    }
+
     // get all the companies listed and verified on carbonite
     pub fn get_pending_companies_list(
         &self,
