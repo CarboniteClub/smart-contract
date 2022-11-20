@@ -36,7 +36,8 @@ impl Contract {
         }
     }
 
-    // check if a particular accountId has requested company verification
+    // check if a particular accountId is in pending company verification list
+    // change the fn name to be more approriate
     pub fn has_company_requested_verification(&self, account_id: AccountId) -> bool{
         self.pending_verification_requests.get(&account_id).is_some()
     }

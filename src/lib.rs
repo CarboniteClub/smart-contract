@@ -185,11 +185,10 @@ impl Contract {
     }
 
     /// owner only method to add new multiple whitelisted companies
-    #[payable]
     pub fn whitelist_companies(&mut self, companies: Vec<AccountId>) {
         self.assert_owner();
 
-        let initial_storage = env::storage_usage();
+        // let initial_storage = env::storage_usage();
 
         require!(
             companies.len() <= 7,
@@ -202,11 +201,11 @@ impl Contract {
             if let Some(company_reg_details) =
                 self.pending_verification_requests.remove(&company_id)
             {
-                create_sub_account(company_id.clone(), company_reg_details.public_key);
                 self.internal_add_company_to_whitelisted_companies(
                     &company_id,
                     &company_reg_details.company,
                 );
+                create_sub_account(company_id.clone(), company_reg_details.public_key);
             } else {
                 env::panic_str(
                     format!("{company_id} is not in pending verification list").as_str(),
@@ -214,8 +213,10 @@ impl Contract {
             }
         }
 
-        let storage_used = env::storage_usage() - initial_storage;
-        refund_excess_deposit(storage_used);
+        // let storage_used = env::storage_usage() - initial_storage;
+        // refund_excess_deposit(storage_used);
+
+        // storage refund is probably not required bcz it s already payed during the request_verification
 
         // Add a gas check to ensure sub account creation and the full execution if account creation does not revert on panic
         // Test and modify what should be max companies that can be whitelisted in a single call (restricted due to hard limit on gas on a function call)

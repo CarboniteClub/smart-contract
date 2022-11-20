@@ -25,7 +25,7 @@ impl Contract {
             self.whitelisted_companies
                 .insert(company_id, company)
                 .is_none(),
-            "company ID already exists" // would never reach this since it will fail at sub account creation itself but still for security reasons
+            "company ID already exists" 
         );
     }
 
