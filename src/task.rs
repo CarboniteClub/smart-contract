@@ -82,6 +82,8 @@ impl TaskDetails {
             self.reference_hash.0.len() == 32,
             "hash should be 32 bytes long"
         )
+
+        // todo!(); make it generic
     }
 }
 
@@ -92,6 +94,9 @@ impl Submission {
             self.submission_reference_hash.0.len() == 32,
             "hash should be 32 bytes long"
         )
+
+        // todo!(); make it generic
+
     }
 }
 

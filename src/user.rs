@@ -14,7 +14,7 @@ impl Contract {
     ) -> PromiseOrValue<()> {
         let initial_storage = env::storage_usage();
 
-        assert_valid_carbonite_user_account_pattern(receiver_id.as_str());
+        assert_valid_carbonite_user_account_pattern(&receiver_id);
 
         let token_metadata = TokenMetadata::new_default(title, description);
 
@@ -76,7 +76,10 @@ impl Contract {
 }
 
 /// asserts that passed account ID is exactly of form valid_username.carbonite.near
-pub(crate) fn assert_valid_carbonite_user_account_pattern(account_id: &str) {
+pub(crate) fn assert_valid_carbonite_user_account_pattern(account_id: &AccountId) {
+
+    let account_id = account_id.as_str();
+    
     let (username, carbonite_contract_id) = account_id
         .split_once(".")
         .unwrap_or_else(|| env::panic_str("Invalid account ID passed"));

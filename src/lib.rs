@@ -166,6 +166,8 @@ impl Contract {
 
         let account_id = company_reg_details.account_id.clone();
 
+        assert_valid_carbonite_company_account_pattern(&account_id);
+
         require!(
             self.pending_verification_requests
                 .insert(&account_id, &company_reg_details)
@@ -195,7 +197,7 @@ impl Contract {
         );
 
         for company_id in companies {
-            assert_valid_carbonite_company_account_pattern(company_id.as_str());
+            assert_valid_carbonite_company_account_pattern(&company_id);
 
             if let Some(company_reg_details) =
                 self.pending_verification_requests.remove(&company_id)
