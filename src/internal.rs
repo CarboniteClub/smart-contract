@@ -25,7 +25,7 @@ impl Contract {
             self.whitelisted_companies
                 .insert(company_id, company)
                 .is_none(),
-            "company ID already exists" 
+            "company ID already exists"
         );
     }
 

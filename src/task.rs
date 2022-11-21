@@ -96,7 +96,6 @@ impl Submission {
         )
 
         // todo!(); make it generic
-
     }
 }
 

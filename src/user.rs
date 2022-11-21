@@ -42,8 +42,8 @@ impl Contract {
         // todo!();
     }
 
-    /// accept invite from a company for a particular task, if can't accept invite return false
-    pub fn accept_invite(&mut self, task_id: TaskId) -> bool {
+    /// accept invite from a company for a particular task, panic if can't accept
+    pub fn accept_invite(&mut self, task_id: TaskId) {
         self.ping_task(&task_id);
 
         let user_id = env::predecessor_account_id();
@@ -66,20 +66,17 @@ impl Contract {
                     task.task_state = TaskState::Pending;
                 }
             }
-            _ => return false,
+            _ => env::panic_str("Task State is not Open to Accept Invitations"),
         }
 
         self.task_metadata_by_id.insert(&task_id, &task);
-
-        return true;
     }
 }
 
 /// asserts that passed account ID is exactly of form valid_username.carbonite.near
 pub(crate) fn assert_valid_carbonite_user_account_pattern(account_id: &AccountId) {
-
     let account_id = account_id.as_str();
-    
+
     let (username, carbonite_contract_id) = account_id
         .split_once(".")
         .unwrap_or_else(|| env::panic_str("Invalid account ID passed"));
